@@ -104,9 +104,15 @@ void entity_think(Entity *self)
     if (self->think)self->think(self);
 }
 
+void entity_collision(Entity *self, Entity* other)
+{
+    if (!self)return;
+    if (self->collision)self->collision(self, other);
+}
+
 void entity_think_all()
 {
-    int i;
+    int i, p = 0;
     for (i = 0; i < entity_manager.entity_count; i++)
     {
         if (!entity_manager.entity_list[i]._inuse)// not used yet
@@ -114,6 +120,17 @@ void entity_think_all()
             continue;// skip this iteration of the loop
         }
         entity_think(&entity_manager.entity_list[i]);
+
+        if (entity_manager.entity_list[i].team == TEAM_PLAYER)
+        {
+            p = i;
+            continue;
+        }
+
+        if (gfc_box_overlap(entity_manager.entity_list[i].bounds, entity_manager.entity_list[p].bounds))
+        {
+            entity_collision(&entity_manager.entity_list[p], &entity_manager.entity_list[i]);
+        }
     }
 }
 

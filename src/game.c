@@ -21,6 +21,8 @@
 #include "agumon.h"
 #include "player.h"
 #include "world.h"
+#include "sample.h"
+#include "weapon.h"
 
 extern int __DEBUG;
 
@@ -38,6 +40,15 @@ int main(int argc,char *argv[])
     Particle particle[100];
     Matrix4 skyMat;
     Model *sky;
+    //Matrix4 sampleMat;
+    Entity *sample;
+    //Vector4D sampleVec = {1, 1, 1, 1};
+    //Vector4D sampleVec2 = {2, 2, 2, 2};
+    //Weapon *weapon;
+    Entity *player;
+    int nextCheck = 0;
+    const Uint8 * keys;
+    int bogus = 0;
 
     for (a = 1; a < argc;a++)
     {
@@ -60,15 +71,30 @@ int main(int argc,char *argv[])
     
     mouse = gf2d_sprite_load("images/pointer.png",32,32, 16);
     
-    
-    agu = agumon_new(vector3d(0 ,0,0));
+    player = player_new(vector3d(0,50,0));
+
+    agu = agumon_new(vector3d(0,0,0));
     if (agu)agu->selected = 1;
+
+    sample = sample_new(vector3d(0, 0, 0));
+    if (sample)
+    {
+        sample->selected = 1;
+        //slog("Sample spawned");
+    }
+
+    /*slog("Spawning weapon");
+    weapon = weapon_new(vector3d(0, 0, 0), RT_MELEE, RV_SHORT);
+    if (weapon)
+    {
+        weapon->super->selected = 1;
+        slog("Weapon spawned");
+    }*/
     w = world_load("config/testworld.json");
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     slog_sync();
     gf3d_camera_set_scale(vector3d(1,1,1));
-    player_new(vector3d(-50,0,0));
     
     for (a = 0; a < 100; a++)
     {
@@ -81,20 +107,38 @@ int main(int argc,char *argv[])
     sky = gf3d_model_load("models/sky.model");
     gfc_matrix_identity(skyMat);
     gfc_matrix_scale(skyMat,vector3d(100,100,100));
+
+    //slog("Test message");
+    /*sample = gf3d_model_load("models/test.model");
+    gfc_matrix_identity(sampleMat);*/
+    //gfc_matrix_scale(sampleMat, vector3d(1, 1, 1));
     
     // main game loop
     slog("gf3d main loop begin");
     while(!done)
     {
+        /*if (SDL_GetTicks() > nextCheck)
+        {
+            nextCheck = SDL_GetTicks() + 300;
+            slog("Button: %i", SDL_GetKeyboardState(NULL));
+        }*/
         gfc_input_update();
         gf2d_font_update();
         SDL_GetMouseState(&mousex,&mousey);
         
         mouseFrame += 0.01;
         if (mouseFrame >= 16)mouseFrame = 0;
-        world_run_updates(w);
-        entity_think_all();
-        entity_update_all();
+
+        keys = SDL_GetKeyboardState(NULL);
+
+        if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_D] || bogus == 0)
+        {
+            world_run_updates(w);
+            entity_think_all();
+            entity_update_all();
+            bogus = 1;
+        }
+        //gf3d_camera_look_at(vector3d(player->position.x + 50, player->position.y, player->position.z), player->position, vector3d(0, 0, 1));
         gf3d_camera_update_view();
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
 
@@ -102,6 +146,7 @@ int main(int argc,char *argv[])
 
             //3D draws
                 gf3d_model_draw_sky(sky,skyMat,gfc_color(1,1,1,1));
+                //gf3d_model_draw(sample, sampleMat, sampleVec, sampleVec);
                 world_draw(w);
                 entity_draw_all();
                 
@@ -119,7 +164,7 @@ int main(int argc,char *argv[])
         gf3d_vgraphics_render_end();
 
         if (gfc_input_command_down("exit"))done = 1; // exit condition
-    }    
+    }
     
     world_delete(w);
     

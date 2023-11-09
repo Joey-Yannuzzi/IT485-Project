@@ -15,6 +15,8 @@ typedef enum
     ES_attack
 }EntityState;
 
+#define TEAM_PLAYER 0
+#define TEAM_ENEMY 1
 
 typedef struct Entity_S
 {
@@ -35,6 +37,7 @@ typedef struct Entity_S
     void       (*draw)(struct Entity_S *self); /**<pointer to an optional extra draw funciton*/
     void       (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor); /**<pointer to the think function*/
     void       (*onDeath)(struct Entity_S *self); /**<pointer to an funciton to call when the entity dies*/
+    void       (*collision)(struct Entity_S *self, struct Entity_S *other);
     
     EntityState state;
     
@@ -97,5 +100,7 @@ void entity_think_all();
  * @brief run the update functions for ALL active entities
  */
 void entity_update_all();
+
+void entity_collision(Entity *self, Entity *other);
 
 #endif
