@@ -1,0 +1,7 @@
+{
+    "model":
+    {
+        "model": "models/sample/sample.obj",
+        "texture": "models/sample/sample.png"
+    }
+}
